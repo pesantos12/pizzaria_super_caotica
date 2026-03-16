@@ -21,10 +21,11 @@ import queue
 import time
 from math import sqrt
 import random
+from timeit import default_timer
 
 tamanho_fila = 50
+numero_de_chefs_entregadores = 1
 semaphoro = threading.Semaphore(3)
-
 pedidos_pendentes = queue.Queue()
 pizzas_feitas = queue.Queue()
 pedidos_completos_bool = threading.Event()
@@ -59,11 +60,11 @@ def chef(pedidos_pendentes, n_thread):
             semaphoro.acquire()
             contador += 1
             print(f'O chef {n_thread} está fazendo a sua {contador}ª pizza, pizza de número {pizza}. É primo? {eh_primo(pizza)}')
-            time.sleep(1)
+            #time.sleep(1)
             print(f'O chef {n_thread} finalizou a pizza de número {pizza}')
             pizzas_feitas.put(pizza)
             semaphoro.release()
-            time.sleep(1)
+            #time.sleep(1)
 
         if pedidos_completos_bool.is_set():
             break
@@ -81,7 +82,7 @@ def entregador(n_thread):
         try:
             pizza = pizzas_feitas.get(block=False)
             print(f'O entregador {n_thread} está fazendo a entrega do pedido {pizza}')
-            time.sleep(1)
+            #time.sleep(1)
             print(f'O entregador {n_thread} concluiu a entrega do pedido {pizza}')
         except queue.Empty:
             continue
@@ -102,10 +103,11 @@ def entregador(n_thread):
 
 
 if __name__ == '__main__':
+    inicio = default_timer()
 
     funcionario = []
 
-    for n_thread in range (1, 9):
+    for n_thread in range (1, numero_de_chefs_entregadores + 1):
         p = threading.Thread(target=chef,  args=(pedidos_pendentes, n_thread))
         e = threading.Thread(target=entregador, args=(n_thread,))
         funcionario.append(p)
@@ -115,3 +117,8 @@ if __name__ == '__main__':
 
     for j in funcionario:
         j.join()
+
+    fim = default_timer()
+
+    print(fim - inicio)
+    
